@@ -6,8 +6,8 @@ const App = () => {
 
   return (
     <div className="flex justify-center">
-      {/* <DebounceSearch /> */}
-      <Toast />
+      <DebounceSearch />
+      {/* <Toast /> */}
     </div>
   );
 };

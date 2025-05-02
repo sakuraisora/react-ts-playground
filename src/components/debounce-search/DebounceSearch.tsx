@@ -93,22 +93,23 @@ export default function DebounceSearch() {
   
   const debouncedQuery = useDebounce(query, 300);
   
-  const fetchProducts = useCallback(async (searchQuery: string, pageNum: number, reset = false) => {
-    setProducts([]);
+  const fetchProducts = useCallback(async (searchQuery: string, pageNum: number, reset: boolean) => {
+    // Only clear products if this is a new search (reset is true)
+    if (reset) {
+      setProducts([]);
+    }
     setIsLoading(true);
     setError(null);
     
-    if (searchQuery) {
-      try {
-        const result = await searchProducts(searchQuery, pageNum) as SearchResult;
-        setProducts(prev => reset ? result.data : [...prev, ...result.data]);
-        setHasMore(result.hasMore);
-        setTotal(result.total);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setIsLoading(false);
-      }
+    try {
+      const result = await searchProducts(searchQuery, pageNum) as SearchResult;
+      setProducts(prev => reset ? result.data : [...prev, ...result.data]);
+      setHasMore(result.hasMore);
+      setTotal(result.total);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
   
@@ -116,7 +117,7 @@ export default function DebounceSearch() {
     if (!isLoading && hasMore) {
       const nextPage = page + 1;
       setPage(nextPage);
-      fetchProducts(query, nextPage);
+      fetchProducts(query, nextPage, false);
     }
   }, [fetchProducts, hasMore, isLoading, page, query]);
   
@@ -132,14 +133,14 @@ export default function DebounceSearch() {
   }, [handleLoadMore, hasMore, isLoading]);
 
   useEffect(() => {
-  if (debouncedQuery.trim() === "") {
-    setProducts([]);
-    setHasMore(false);
-    setTotal(0);
-  } else {
-    fetchProducts(debouncedQuery, 1, true);
-  }
-}, [debouncedQuery, fetchProducts]);
+    if (debouncedQuery.trim() === "") {
+      setProducts([]);
+      setHasMore(false);
+      setTotal(0);
+    } else {
+      fetchProducts(debouncedQuery, 1, true);
+    }
+  }, [debouncedQuery, fetchProducts]);
   
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
